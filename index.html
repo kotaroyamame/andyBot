@@ -54,9 +54,11 @@
 		},
 		methods: {
 		sendMessage: function () {
-			const userMessage=this.inputText;
-				this.messages.push({is_user:true,text:this.inputText});
-				this.messages.push(bot(userMessage))
+			// ここから下を編集
+
+
+			this.messages.push({is_user:true,text:this.inputText});
+
 		}
 		}
 		})
