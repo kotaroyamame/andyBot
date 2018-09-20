@@ -6,12 +6,30 @@
 		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 		<style>
-			.user{
+			.messageBoxWrap.user{
 				margin-right: 10px;
 				margin-left: auto;
 				width:50%;
+				text-align: right;
 			}
-			.bot{
+			.faceIcon{
+				width:50px;
+				height:50px;
+				background-color: #fff;
+				background-image: url(1114057.png);
+				background-size:cover;
+				background-position: center center;
+				border-radius: 50%;
+				border: 4px #aaa solid; 
+				display: block;
+				position: absolute;
+				left:0px;
+				top:0px;
+				bottom:0px;
+				right:auto;
+				margin:auto;
+			}
+			.messageBoxWrap.bot{
 				margin-right: auto;
 				margin-left: 10px;
 				width:50%;
@@ -27,17 +45,29 @@
 			.chat-windowWrap{
 				text-align: center;
 			}
-			.messageBox{
+			.messageBoxWrap{
 				margin-top:10px;
 				margin-bottom:10px;
 				color:#000;
 				text-align: left;
+				display: block;
+				position: relative;
+			}
+			.messageBox{
+				padding:8px;
+				margin-top:10px;
+				margin-bottom:10px;
+				color:#000;
+				text-align: left;
+				display: inline-block;
+				border-radius: 6px;
 			}
 			.messageBox.user{
 				background-color: #afa;
 			}
 			.messageBox.bot{
 				background-color: #fff;
+				margin-left: 60px
 			}
 			.chatBox{
 				overflow: auto;
@@ -60,7 +90,7 @@
 			<div class="chat-window">
 
 				<ul id="chatBox" class="list-group chatBox">
-					<li v-for="message in messages" class="alert alert-primary list-group-item messageBox" v-bind:class="{ user: message.is_user ,bot: !message.is_user}">{{ message.text }}</li>
+					<li v-for="message in messages" class="messageBoxWrap" v-bind:class="{ user: message.is_user ,bot: !message.is_user}"><div class="faceIcon" v-if="!message.is_user"> </div><span class="messageBox" v-bind:class="{ user: message.is_user ,bot: !message.is_user}">{{ message.text }}</span></li>
 				</ul>
 				<div class="sendArea">
 					<input type="text" v-model="inputText" placeholder="コメントを入力してください">
