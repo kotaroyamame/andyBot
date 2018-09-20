@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>オリジナルボット</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+		<style>
+			.user{
+				margin-right: 0px;
+				margin-left: auto;
+				width:50%;
+			}
+			.bot{
+				margin-right: auto;
+				margin-left: 0px;
+				width:50%;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app-5">
+			<input type="text" v-model="inputText" placeholder="コメントを入力してください">
+			<button v-on:click="sendMessage" type="button" class="btn btn-primary">send</button>
+			<ul class="list-group">
+				<li v-for="message in messages" class="alert alert-primary list-group-item" v-bind:class="{ user: message.is_user ,bot: !message.is_user}">{{ message.text }}</li>
+			</ul>
+		</div>
+		<script>
+			const dic={
+				"こんにちは":"",
+				"こんばんは":"こんばんは！！",
+				"いい天気ですね":"そうですね",
+				"疲れた":"私も",
+			}
+		function bot(userMessage){
+			let res="Hello";
+			for(const key in dic){
+				const reg = new RegExp(userMessage,'ig');
+				console.log(key);
+				console.log(key.match(reg));
+				if(key.match(reg)){
+					res=dic[key];
+					break;
+				}
+			}
+			return {is_user:false,text:res};
+		}
+		function messageConverter(userMessage){
+		// ここから編集
+			let hako = "Hello"
+			hako += userMessage
+			hako += "さよなら"
+			return hako
+		}
+		var app5 = new Vue({
+		el: '#app-5',
+		data: {
+		messages: [],
+		inputText:""
+		},
+		methods: {
+		sendMessage: function () {
+			const message=messageConverter(this.inputText);
+			this.messages.push({is_user:true,text:message});
+		}
+		}
+		})
+		</script>
+	</body>
+</html>
