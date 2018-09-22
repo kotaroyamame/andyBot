@@ -179,7 +179,9 @@
 		const dic={
 			"こんにちは":[
 				["こんにちは"],
-				["こんにちは!!","最近お元気ですか？"]
+				["こんにちは!!","最近お元気ですか？"],
+				["こんにちは!!","最近どうですか？"],
+				["こんにちはっ！","久しぶりですね"]
 			],
 			"元気だよ":[
 				["私も元気です"],
@@ -258,6 +260,26 @@
 						).reduce((x,y)=>x+y,0)
 					})
 				}
+			}
+		})
+		chatbot.$watch('delayTimeMin',function(value){
+			if(this.delayTimeMax<=value){
+				this.delayTimeMin=this.delayTimeMax;
+			}
+		})
+		chatbot.$watch('delayTimeMax',function(value){
+			if(this.delayTimeMin>=value){
+				this.delayTimeMax=this.delayTimeMin;
+			}
+		})
+		chatbot.$watch('oneCharTimeMin',function(value){
+			if(this.oneCharTimeMax<=value){
+				this.oneCharTimeMin=this.oneCharTimeMax;
+			}
+		})
+		chatbot.$watch('oneCharTimeMax',function(value){
+			if(this.oneCharTimeMin>=value){
+				this.oneCharTimeMax=this.oneCharTimeMin;
 			}
 		})
 		chatbot.$watch('messages',async function(value,m){
