@@ -282,7 +282,9 @@
 							(botMessages[i]||[]).length
 						);
 					this.is_writing=false;
-					await wait(delayTime);
+					if(i==0){
+						await wait(delayTime);
+					}
 					this.is_writing=true;
 					await wait(writingTime);
 					this.is_writing=false;
