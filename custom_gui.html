@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>オリジナルボット</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+		<style>
+			.messageBoxWrap.user{
+				margin-right: 10px;
+				margin-left: auto;
+				width:50%;
+				text-align: right;
+			}
+			.faceIcon{
+				width:50px;
+				height:50px;
+				background-color: #fff;
+				background-image: url(1114057.png);
+				background-size:cover;
+				background-position: center center;
+				border-radius: 50%;
+				border: 4px #aaa solid; 
+				display: block;
+				position: absolute;
+				left:0px;
+				top:0px;
+				bottom:0px;
+				right:auto;
+				margin:auto;
+			}
+			.messageBoxWrap.bot{
+				margin-right: auto;
+				margin-left: 10px;
+				width:50%;
+			}
+			.chat-window{
+				width:500px;
+				overflow: hidden;
+				height: 800px;
+				margin:auto;
+				background-color: #aaa;
+				position:relative;
+			}
+			.chat-windowWrap{
+				text-align: center;
+			}
+			.messageBoxWrap{
+				margin-top:10px;
+				margin-bottom:10px;
+				color:#000;
+				text-align: left;
+				display: block;
+				position: relative;
+			}
+			.messageBox{
+				padding:8px;
+				margin-top:10px;
+				margin-bottom:10px;
+				color:#000;
+				text-align: left;
+				display: inline-block;
+				border-radius: 6px;
+			}
+			.messageBox.user{
+				background-color: #afa;
+			}
+			.messageBox.bot{
+				background-color: #fff;
+				margin-left: 60px
+			}
+			.messageBox.bot.writing{
+				opacity:0.5;
+				background-color:none;
+				background-image:url(Preloader_2.gif);
+				background-repeat: no-repeat;
+				background-position: center center;
+				width:80px;
+			}
+			.chatBox{
+				overflow: auto;
+				height: 730px;
+				margin-bottom: 90px;
+			}
+			.sendArea{
+				position: absolute;
+				padding: 10px;
+				bottom:0px;
+				left: 0px;
+				right:0px;
+				margin:auto;
+				background-color: #eee;
+			}
+			.chat-window_setting{
+				width:400px;
+				height:400px;
+				margin:auto;
+				margin-top:80px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="chatbot" class="chat-windowWrap">
+			<div class="chat-window">
+
+				<ul id="chatBox" class="list-group chatBox">
+					<li v-for="message in messages" class="messageBoxWrap" v-bind:class="{ user: message.is_user ,bot: !message.is_user}"><div class="faceIcon" v-if="!message.is_user"> </div><span class="messageBox" v-bind:class="{ user: message.is_user ,bot: !message.is_user}">{{ message.text }}</span></li>
+					<li class="messageBoxWrap bot writing" v-if="is_writing"><div class="faceIcon"> </div><span class="messageBox bot writing"></span></li>
+				</ul>
+				<div class="sendArea">
+					<input type="text" v-model="inputText" placeholder="コメントを入力してください">
+					<button v-on:click="sendMessage" type="button" class="btn btn-primary">送信</button>
+				</div>
+				
+			</div>
+			<div class="chat-window_setting">
+				<h3>ボットが打ち始めるまでの時間(ms)</h3>
+				<p>min<input type="range" min="0" max="10000" v-model="delayTimeMin">({{delayTimeMin}})</p>
+				<p>Max<input type="range" min="0" max="10000" v-model="delayTimeMax">({{delayTimeMax}})</p>
+				<h3>ボットが一文字入力するのにかかる時間(ms)</h3>
+				<p>min<input type="range" min="0" max="1000" v-model="oneCharTimeMin">({{oneCharTimeMin}})</p>
+				<p>Max<input type="range" min="0" max="1000" v-model="oneCharTimeMax">({{oneCharTimeMax}})</p>
+				<p><button v-on:click="setChart">グラフ表示</button></p>
+				<h3>x:文字数　y:時間(ms)</h3>
+				<canvas id="delaytimeChart" width="400" height="400"></canvas>
+			</div>
+		</div>
+		<script>
+		const setChart=(size=20,ctx,func)=>{
+			const labels=[...Array(size+1).keys()].slice(1);
+
+			const delaytimeChart = new Chart(ctx, {
+				type: 'line',
+				data: {
+					labels:labels,
+					datasets:[
+						{
+							label:"遅延時間",
+							data:labels.map(func)
+						}
+					]
+				},
+				//options: options
+			});
+		}
+		const delaytimeMaker = (dmin,dMax,omin,oMax,charSize=10)=>{
+			dmin=parseInt(dmin);dMax=parseInt(dMax);omin=parseInt(omin);oMax=parseInt(oMax);
+			return [Math.random()*(dMax-dmin)+dmin , Math.random()*(oMax*charSize-omin*charSize)+omin*charSize];
+		}
+		const lDistance = (a, b)=>{
+			if(a.length == 0) return b.length;
+			if(b.length == 0) return a.length;
+			var matrix = [];
+			// increment along the first column of each row
+			var i;
+			for(i = 0; i <= b.length; i++){
+				matrix[i] = [i];
+			}
+			// increment each column in the first row
+			var j;
+			for(j = 0; j <= a.length; j++){
+				matrix[0][j] = j;
+			}
+			// Fill in the rest of the matrix
+			for(i = 1; i <= b.length; i++){
+				for(j = 1; j <= a.length; j++){
+					if(b.charAt(i-1) == a.charAt(j-1)){
+						matrix[i][j] = matrix[i-1][j-1];
+					} else {
+						matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+						Math.min(matrix[i][j-1] + 1, // insertion
+						matrix[i-1][j] + 1)); // deletion
+					}
+				}
+			}
+			return matrix[b.length][a.length];
+		};
+		const dic={
+			"こんにちは":[
+				["こんにちは"],
+				["こんにちは!!","最近お元気ですか？"]
+			],
+			"元気だよ":[
+				["私も元気です"],
+				["よかった","私も元気です"]
+			],
+			"こんばんは":[
+				["こんばんは！！"]
+			],
+			"いい天気ですね":[
+				["そうですね"]
+			],
+			"疲れた":[
+				["私も"],["大丈夫？","ストレスがたまってるんじゃないですか？"]
+			],
+			"来週予定ある？":[
+				["忙しいの"],["ごめんなさい","忙しいの"],["水曜日ならあいてます"]
+			],
+			"一緒に遊ぼうよ":[
+				["忙しいの"],["ごめんなさい"],["遊びたくないです"],["遊びましょう！"]
+			],
+			"名前を教えて":[
+				["忙しいの"],["ごめんなさい"],["秘密です"]
+			],
+		}
+
+		function bot(userMessage){
+			let res=[["Hello"]];
+			let oldLDis=99;
+			for(const key in dic){
+				const lDis = lDistance(userMessage,key);
+				if(oldLDis>lDis){
+					res=dic[key];
+					oldLDis=lDis;
+					if(lDis==0){
+						break;
+					}
+				}
+			}
+			res=res[Math.floor(Math.random()*res.length)];
+			return res.map(tList=>{return {is_user:false,text:tList}});
+		}
+		function messageConverter(userMessage){
+		// ここから下を編集
+			
+			return userMessage
+		}
+		const chatbot = new Vue({
+			el: '#chatbot',
+			data: {
+			messages: [],
+			inputText:"",
+			is_writing:false,
+			delayTimeMin:2000,
+			delayTimeMax:5000,
+			oneCharTimeMin:50,
+			oneCharTimeMax:300,
+			},
+			methods: {
+				sendMessage: function () {
+					if(this.inputText==""){
+						return;
+					}
+					const message=messageConverter(this.inputText);
+					this.inputText="";
+					this.messages.push({is_user:true,text:message});
+				},
+				setChart:function(){
+					const ctx = document.getElementById("delaytimeChart");
+					setChart(20,ctx,(x)=>{
+						return delaytimeMaker(
+							this.delayTimeMin,
+							this.delayTimeMax,
+							this.oneCharTimeMin,
+							this.oneCharTimeMax,
+							x
+						).reduce((x,y)=>x+y,0)
+					})
+				}
+			}
+		})
+		chatbot.$watch('messages',async function(value,m){
+			const wait = (time)=>{
+				return new Promise(r=>{
+					setTimeout(()=>{
+						r();
+					},time)
+				})
+			}
+			const chatBox=document.getElementById('chatBox');
+			let chatBoxScrollTop=chatBox.scrollTop;
+			chatBox.scrollTop=chatBoxScrollTop+999;
+			if(value[value.length-1].is_user){
+				const botMessages=bot(value[value.length-1].text);
+				for(let i=0;i<botMessages.length;i++){
+					const [delayTime,writingTime]=delaytimeMaker(
+							this.delayTimeMin,
+							this.delayTimeMax,
+							this.oneCharTimeMin,
+							this.oneCharTimeMax,
+							(botMessages[i]||[]).length
+						);
+					this.is_writing=false;
+					await wait(delayTime);
+					this.is_writing=true;
+					await wait(writingTime);
+					this.is_writing=false;
+					this.messages.push(botMessages[i]);
+				}
+			}
+		})
+
+		</script>
+	</body>
+</html>
